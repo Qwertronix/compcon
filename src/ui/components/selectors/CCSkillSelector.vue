@@ -82,7 +82,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
+import { Vue, Component, Prop, Watch } from 'vue-property-decorator'
 import SkillSelectItem from './components/_SkillSelectItem.vue'
 import AddCustomSkill from './components/_AddCustomSkill.vue'
 import MissingItem from './components/_MissingItem.vue'
@@ -92,47 +92,50 @@ import { CompendiumStore } from '@/store'
 import { rules } from 'lancer-data'
 import { Pilot } from '@/class'
 
-export default Vue.extend({
+@Component({ 
   name: 'skill-selector',
   components: { Selector, SkillSelectItem, AddCustomSkill, MissingItem },
-  props: {
-    pilot: Pilot,
-    levelUp: Boolean,
-  },
-  data: () => ({
-    staticSkills: [],
-    headers: [],
-  }),
-  computed: {
-    skills() {
-      const cs = this.pilot.Skills.filter(x => x.IsCustom)
-      if (cs.length) return { ...this.staticSkills, Custom: cs.map(x => x.Skill) }
-      return this.staticSkills
-    },
-    newPilot(): boolean {
-      return this.pilot.Level === 0
-    },
-    selectedMin(): number {
-      return rules.minimum_pilot_skills
-    },
-    enoughSelections(): boolean {
-      return !(this.pilot.Skills.length < this.selectedMin)
-    },
-    selectionComplete(): boolean {
-      return (this.newPilot || this.levelUp) && !this.pilot.IsMissingSkills
-    },
-  },
-  watch: {
-    selectionComplete() {
-      window.scrollTo(0, document.body.scrollHeight)
-    },
-  },
-  created() {
-    const compendium = getModule(CompendiumStore, this.$store)
-    this.staticSkills = this.$_.groupBy(compendium.Skills, 'Family')
-    this.headers = rules.skill_headers
-  },
 })
+export default class CCSkillSelector extends Vue {
+
+  @Prop({ type: Object, required: true })
+  pilot!: Pilot
+
+  @Prop({ type: Boolean, default: false })
+  levelUp: boolean
+
+  get headers() {
+    return rules.skill_headers
+  }
+
+  get staticSkills() {
+    const compendium = getModule(CompendiumStore, this.$store)
+    return this.$_.groupBy(compendium.Skills, 'Family')
+  }
+  get skills() {
+    const cs = this.pilot.Skills.filter(x => x.IsCustom)
+    if (cs.length) return { ...this.staticSkills, Custom: cs.map(x => x.Skill) }
+    return this.staticSkills
+  }
+  get newPilot(): boolean {
+    return this.pilot.Level === 0
+  }
+  get selectedMin(): number {
+    return rules.minimum_pilot_skills
+  }
+  get enoughSelections(): boolean {
+    return !(this.pilot.Skills.length < this.selectedMin)
+  }
+
+  get selectionComplete(): boolean {
+    return (this.newPilot || this.levelUp) && !this.pilot.IsMissingSkills
+  }
+
+  @Watch('selectionComplete')
+  onSelectionCompleteChange() {
+    window.scrollTo(0, document.body.scrollHeight)
+  }
+}
 </script>
 
 <style scoped>

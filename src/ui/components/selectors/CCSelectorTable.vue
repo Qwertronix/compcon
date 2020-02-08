@@ -56,7 +56,7 @@
         <cc-range-element small :range="item.Range" />
       </template>
       <template v-slot:item.Detail="{ item }">
-        <v-icon color="primary" @click="$refs[`modal_${item.ID}`].show()">
+        <v-icon color="primary" @click="getModalRef(item.ID).show()">
           mdi-information-outline
         </v-icon>
         <cc-search-result-modal :ref="`modal_${item.ID}`" :item="item" />
@@ -66,78 +66,76 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
+import { Vue, Component, Prop } from 'vue-property-decorator'
 import ItemFilter from '@/classes/utility/ItemFilter'
 import { accentInclude } from '@/classes/utility/accent_fold'
+import { CompendiumItem } from '@/class'
+import CCSearchResultModal from '../cards/CCSearchResultModal.vue'
 
-export default Vue.extend({
+@Component({ 
   name: 'cc-selector-table',
-  props: {
-    headers: {
-      type: Array,
-      required: true,
-    },
-    items: {
-      type: Array,
-      required: true,
-    },
-    noFilter: {
-      type: Boolean,
-      required: false,
-    },
-    itemTypeFallback: {
-      type: String,
-      required: false,
-      default: '',
-    },
-  },
-  data: () => ({
-    search: '',
-    filters: {},
-    itemType: '',
-    tableHeight: 500,
-  }),
-  computed: {
-    fItems() {
-      var vm = this as any
-      let i = vm.items
+})
+export default class CCSelectorTable extends Vue {
+  
+  @Prop({ type: Array, required: true, })
+  headers!: any[]
 
-      if (vm.search) i = i.filter(x => accentInclude(x.Name, vm.search))
+  @Prop({ type: Array, required: true, })
+  items!: CompendiumItem[]
 
-      if (Object.keys(vm.filters).length) {
-        i = ItemFilter.Filter(i, vm.filters)
+  @Prop({ type: Boolean, required: false, })
+  noFilter?: boolean
+
+  @Prop({ type: String, required: false, default: '', })
+  itemTypeFallback: string
+
+  get itemType() {
+    if (!this.items.length) return this.itemTypeFallback
+    return this.items[0].ItemType
+  }
+
+  getModalRef(id) {
+    return this.$refs[`modal_${id}`] as CCSearchResultModal
+  }
+
+  get fItems() {
+    // var vm = this as any
+    let i = this.items
+
+    if (this.search) i = i.filter(x => accentInclude(x.Name, this.search))
+
+    if (Object.keys(this.filters).length) {
+      i = ItemFilter.Filter(i, this.filters)
+    }
+
+    return i
+  }
+
+  search = ''
+  filters = {}
+  customSort(items, index, descending) {
+    const desc = descending[0]
+    items.sort((a, b) => {
+      if (index[0] === 'Damage[0].Max') {
+        return desc ? b.Damage[0].Max - a.Damage[0].Max : a.Damage[0].Max - b.Damage[0].Max
+      } else if (index[0] === 'Range[0].Max') {
+        return desc ? b.Range[0].Max - a.Range[0].Max : a.Range[0].Max - b.Range[0].Max
+      } else {
+        return desc ? (a[index[0]] < b[index[0]] ? -1 : 1) : b[index[0]] < a[index[0]] ? -1 : 1
       }
+    })
+    return items
+  }
+  setFilters(newFilter) {
+    this.filters = newFilter
+  }
 
-      return i
-    },
-  },
-  created() {
-    if (!this.items.length) this.itemType = this.itemTypeFallback
-    this.itemType = this.items[0].ItemType
-  },
+  tableHeight = 500
+  onResize() {
+    this.tableHeight = window.innerHeight - 250
+  }
   mounted() {
     this.onResize()
-  },
-  methods: {
-    customSort(items, index, descending) {
-      const desc = descending[0]
-      items.sort((a, b) => {
-        if (index[0] === 'Damage[0].Max') {
-          return desc ? b.Damage[0].Max - a.Damage[0].Max : a.Damage[0].Max - b.Damage[0].Max
-        } else if (index[0] === 'Range[0].Max') {
-          return desc ? b.Range[0].Max - a.Range[0].Max : a.Range[0].Max - b.Range[0].Max
-        } else {
-          return desc ? (a[index[0]] < b[index[0]] ? -1 : 1) : b[index[0]] < a[index[0]] ? -1 : 1
-        }
-      })
-      return items
-    },
-    setFilters(newFilter) {
-      this.filters = newFilter
-    },
-    onResize() {
-      this.tableHeight = window.innerHeight - 250
-    },
-  },
-})
+  }
+}
 </script>

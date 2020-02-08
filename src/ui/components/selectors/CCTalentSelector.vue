@@ -74,7 +74,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
+import { Vue, Component, Prop, Watch } from 'vue-property-decorator'
 import Selector from './components/_SelectorBase.vue'
 import MissingItem from './components/_MissingItem.vue'
 import TalentSelectItem from './components/_TalentSelectItem.vue'
@@ -83,35 +83,40 @@ import { CompendiumStore } from '@/store'
 import { Pilot, Talent } from '@/class'
 import { rules } from 'lancer-data'
 
-export default Vue.extend({
+@Component({ 
   name: 'talent-selector',
   components: { Selector, TalentSelectItem, MissingItem },
-  props: {
-    pilot: Pilot,
-    levelUp: Boolean,
-  },
-  computed: {
-    newPilot(): boolean {
-      return this.pilot.Level === 0
-    },
-    selectedMin(): number {
-      return rules.minimum_pilot_talents
-    },
-    enoughSelections(): boolean {
-      return !(this.pilot.Talents.length < this.selectedMin)
-    },
-    selectionComplete(): boolean {
-      return (this.newPilot || this.levelUp) && !this.pilot.IsMissingTalents
-    },
-    talents(): Talent[] {
-      const compendium = getModule(CompendiumStore, this.$store)
-      return compendium.Talents
-    },
-  },
-  watch: {
-    selectionComplete() {
-      window.scrollTo(0, document.body.scrollHeight)
-    },
-  },
 })
+export default class CCTalentSelector extends Vue {
+  
+  @Prop({ type: Object, required: true })
+  pilot!: Pilot
+
+  @Prop({ type: Boolean, required: false, default: false })
+  levelUp: boolean
+
+  get newPilot(): boolean {
+    return this.pilot.Level === 0
+  }
+  get selectedMin(): number {
+    return rules.minimum_pilot_talents
+  }
+  get enoughSelections(): boolean {
+    return !(this.pilot.Talents.length < this.selectedMin)
+  }
+  
+  get talents(): Talent[] {
+    const compendium = getModule(CompendiumStore, this.$store)
+    return compendium.Talents
+  }
+
+  get selectionComplete(): boolean {
+    return (this.newPilot || this.levelUp) && !this.pilot.IsMissingTalents
+  }
+
+  @Watch('selectionComplete')
+  onSelectionCompleteChange() {
+    window.scrollTo(0, document.body.scrollHeight)
+  }
+}
 </script>

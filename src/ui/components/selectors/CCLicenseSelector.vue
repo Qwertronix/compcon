@@ -60,7 +60,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
+import { Vue, Component, Prop, Watch } from 'vue-property-decorator'
 import Selector from './components/_SelectorBase.vue'
 import MissingItem from './components/_MissingItem.vue'
 import LicenseSelectItem from './components/_LicenseSelectItem.vue'
@@ -68,35 +68,32 @@ import { getModule } from 'vuex-module-decorators'
 import { CompendiumStore } from '@/store'
 import { Pilot } from '@/class'
 
-export default Vue.extend({
+@Component({ 
   name: 'cc-license-selector',
   components: { Selector, LicenseSelectItem, MissingItem },
-  props: {
-    pilot: Pilot,
-    levelUp: Boolean,
-  },
-  data: () => ({
-    licenses: [],
-  }),
-  computed: {
-    selectionComplete(): boolean {
-      return this.levelUp && !this.pilot.IsMissingLicenses
-    },
-  },
-  watch: {
-    selectionComplete() {
-      window.scrollTo(0, document.body.scrollHeight)
-    },
-  },
-  created() {
-    const compendium = getModule(CompendiumStore, this.$store)
-    this.licenses = this.$_.groupBy(compendium.Licenses, 'Source')
-  },
-  methods: {
-    manufacturer(id: string) {
-      const compendium = getModule(CompendiumStore, this.$store)
-      return compendium.referenceByID('Manufacturers', id.toUpperCase())
-    },
-  },
 })
+export default class CCLicenseSelector extends Vue {
+  
+  @Prop({ type: Object, required: true })
+  pilot!: Pilot
+  @Prop({ type: Boolean, default: false })
+  levelUp: boolean
+
+  get licenses() {
+    const compendium = getModule(CompendiumStore, this.$store)
+    return this.$_.groupBy(compendium.Licenses, 'Source')
+  }
+  manufacturer(id: string) {
+    const compendium = getModule(CompendiumStore, this.$store)
+    return compendium.referenceByID('Manufacturers', id.toUpperCase())
+  }
+
+  get selectionComplete(): boolean {
+    return this.levelUp && !this.pilot.IsMissingLicenses
+  }
+  @Watch('selectionComplete') onSelectionCompleteChange() {
+    window.scrollTo(0, document.body.scrollHeight)
+  }
+
+}
 </script>

@@ -41,71 +41,69 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import imgur from '../../../io/apis/imgur'
+import { Vue, Component, Prop } from 'vue-property-decorator'
+import imgur from '@/io/apis/imgur'
+import { Pilot, Mech, Npc, Encounter } from '@/class'
 
-export default Vue.extend({
+@Component({ 
   name: 'web-image-selector',
-  props: {
-    item: {
-      type: Object,
-      required: true,
-    },
-    type: {
-      type: String,
-      required: true,
-    },
-  },
-  data: () => ({
-    imageData: null,
-    loading: false,
-  }),
-  computed: {
-    displayImage() {
-      if (this.imageData) return `data:image/png;base64,${this.imageData}`
-      else if (this.item.Portrait) return this.item.Portrait
-      else return 'https://via.placeholder.com/550'
-    },
-  },
-  methods: {
-    onChange(file: File | null) {
-      if (!file) {
-        this.imageData = null
-        return
-      }
-      const reader = new FileReader()
-      reader.addEventListener(
-        'load',
-        () => {
-          // get base64 without url headers for imgur
-          this.imageData = btoa(reader.result as string)
-        },
-        false
-      )
-      reader.readAsBinaryString(file)
-    },
-    async saveImage() {
-      this.loading = true
-      const link = await imgur.uploadImage(this.imageData)
-      try {
-        this.item.SetCloudImage(link)
-        this.$emit('notify', 'Cloud Upload Successful')
-      } catch (err) {
-        this.$emit('notify', `Error Uploading to Cloud:<br>${err.message}`)
-      }
-      this.close()
-      this.$refs.fileInput.value = null
-      this.loading = false
-      this.imageData = null
-    },
-    open() {
-      this.$refs.dialog.show()
-    },
-    close() {
-      this.$refs.dialog.hide()
-    },
-  },
 })
+export default class CCImageSelectorWeb extends Vue {
+  
+  @Prop({ type: Object, required: true, })
+  item!: Pilot | Mech | Npc | Encounter
+  @Prop({ type: String, required: true, })
+  type!: string
+
+  imageData = null
+  loading = false
+
+  get displayImage() {
+    if (this.imageData) return `data:image/png;base64,${this.imageData}`
+    else if (this.item.Portrait) return this.item.Portrait
+    else return 'https://via.placeholder.com/550'
+  }
+
+  onChange(file: File | null) {
+    if (!file) {
+      this.imageData = null
+      return
+    }
+    const reader = new FileReader()
+    reader.addEventListener(
+      'load',
+      () => {
+        // get base64 without url headers for imgur
+        this.imageData = btoa(reader.result as string)
+      },
+      false
+    )
+    reader.readAsBinaryString(file)
+  }
+
+  async saveImage() {
+    this.loading = true
+    const link = await imgur.uploadImage(this.imageData)
+    try {
+      this.item.SetCloudImage(link)
+      this.$emit('notify', 'Cloud Upload Successful')
+    } catch (err) {
+      this.$emit('notify', `Error Uploading to Cloud:<br>${err.message}`)
+    }
+    this.close()
+    this.$refs.fileInput.value = null
+    this.loading = false
+    this.imageData = null
+  }
+
+
+  open() {
+    this.$refs.dialog.show()
+  }
+  close() {
+    this.$refs.dialog.hide()
+  }
+}
 </script>
 
 <style scoped>

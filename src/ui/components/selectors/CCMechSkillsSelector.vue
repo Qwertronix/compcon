@@ -26,7 +26,7 @@
           left
           bottom
           class="d-inline elevation-0"
-          @click="remove('Hull')"
+          @click="remove(HASE.H)"
         >
           <v-icon>remove</v-icon>
         </v-btn>
@@ -39,7 +39,7 @@
           right
           bottom
           class="d-inline elevation-0"
-          @click="add('Hull')"
+          @click="add(HASE.H)"
         >
           <v-icon>add</v-icon>
         </v-btn>
@@ -73,7 +73,7 @@
           left
           bottom
           class="d-inline elevation-0"
-          @click="remove('Agi')"
+          @click="remove(HASE.A)"
         >
           <v-icon>remove</v-icon>
         </v-btn>
@@ -86,7 +86,7 @@
           x-small
           right
           bottom
-          @click="add('Agi')"
+          @click="add(HASE.A)"
         >
           <v-icon>add</v-icon>
         </v-btn>
@@ -118,7 +118,7 @@
           left
           bottom
           class="d-inline elevation-0"
-          @click="remove('Sys')"
+          @click="remove(HASE.S)"
         >
           <v-icon>remove</v-icon>
         </v-btn>
@@ -131,7 +131,7 @@
           x-small
           right
           bottom
-          @click="add('Sys')"
+          @click="add(HASE.S)"
         >
           <v-icon>add</v-icon>
         </v-btn>
@@ -166,7 +166,7 @@
           left
           bottom
           class="d-inline elevation-0"
-          @click="remove('Eng')"
+          @click="remove(HASE.E)"
         >
           <v-icon>remove</v-icon>
         </v-btn>
@@ -179,7 +179,7 @@
           x-small
           right
           bottom
-          @click="add('Eng')"
+          @click="add(HASE.E)"
         >
           <v-icon>add</v-icon>
         </v-btn>
@@ -201,31 +201,31 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
+import { Vue, Component, Prop, Emit, Watch } from 'vue-property-decorator'
 import { Pilot, HASE } from '@/class'
 
-export default Vue.extend({
+@Component({ 
   name: 'cc-mech-skills-selector',
-  props: {
-    pilot: Pilot,
-  },
-  watch: {
-    'pilot.IsMissingHASE': function (newVal) {
-      if (newVal === false) window.scrollTo(0, document.body.scrollHeight)
-    }
-  },
-  methods: {
-    add(field: HASE) {
-      this.pilot.MechSkills.Increment(field)
-    },
-    remove(field: HASE) {
-      this.pilot.MechSkills.Decrement(field)
-    },
-    close() {
-      this.$emit('close')
-    },
-  }
 })
+export default class CCMechSkillsSelector extends Vue {
+  
+  @Prop({ type: Object, required: true})
+  pilot!: Pilot
+
+  @Watch('pilot.IsMissingHASE') missingHASEHandler(newVal) {
+    if (newVal === false) window.scrollTo(0, document.body.scrollHeight)
+  }
+
+  get HASE() { return HASE }
+  add(field: HASE) {
+    this.pilot.MechSkills.Increment(field)
+  }
+  remove(field: HASE) {
+    this.pilot.MechSkills.Decrement(field)
+  }
+
+  @Emit() close() {}
+}
 </script>
 
 <style scoped>

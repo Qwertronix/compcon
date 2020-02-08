@@ -76,36 +76,33 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
+import { Vue, Component, Prop, Emit } from 'vue-property-decorator'
 import ReserveItem from './components/_ReserveItem.vue'
 import CustomReservePanel from './components/_CustomReservePanel.vue'
 import DowntimeProjectPanel from './components/_DowntimeProjectPanel.vue'
 import OrganizationPanel from './components/_OrganizationPanel.vue'
-import { Reserve, Organization } from '@/class'
+import { Reserve, Organization, Pilot } from '@/class'
 
-export default Vue.extend({
+@Component({ 
   name: 'downtime-selector',
   components: { ReserveItem, CustomReservePanel, DowntimeProjectPanel, OrganizationPanel },
-  props: {
-    pilot: {
-      type: Object,
-      required: true,
-    },
-  },
-  computed: {
-    reserves() {
-      return this.$_.groupBy(this.$store.getters.getItemCollection('Reserves'), 'Type')
-    },
-  },
-  methods: {
-    add(reserve: Reserve) {
-      this.pilot.Reserves.push(reserve)
-      this.$emit('close')
-    },
-    addOrg(org: Organization) {
-      this.pilot.Organizations.push(org)
-      this.$emit('close')
-    },
-  },
 })
+export default class CCReserveSelector extends Vue {
+  
+  @Prop({ type: Object, required: true, })
+  pilot!: Pilot
+
+  get reserves() {
+    return this.$_.groupBy(this.$store.getters.getItemCollection('Reserves'), 'Type')
+  }
+
+  @Emit('close')
+  add(reserve: Reserve) {
+    this.pilot.Reserves.push(reserve)
+  }
+  @Emit('close')
+  addOrg(org: Organization) {
+    this.pilot.Organizations.push(org)
+  }
+}
 </script>

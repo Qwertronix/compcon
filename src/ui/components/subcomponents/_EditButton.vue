@@ -18,23 +18,21 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-export default Vue.extend({
+import { Vue, Component, Prop, Emit } from 'vue-property-decorator'
+
+@Component({ 
   name: 'cc-string-edit',
-  props: {
-    dark: {
-      type: Boolean,
-      required: false,
-    },
-  },
-  data: () => ({
-    menu: false,
-  }),
-  methods: {
-    save() {
-      this.$emit('save')
-      this.menu = false
-    },
-  },
 })
+export default class EditButton extends Vue {
+
+  @Prop({ type: Boolean, required: false, })
+  dark?: boolean
+
+  menu = false
+  
+  @Emit()
+  save() {
+    this.menu = false
+  }
+}
 </script>

@@ -18,22 +18,20 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-export default Vue.extend({
+import { Vue, Component, Prop } from 'vue-property-decorator'
+import { CompendiumItem } from '@/class'
+
+@Component({ 
   name: 'cc-search-result-modal',
-  props: {
-    item: {
-      type: Object,
-      required: true,
-    },
-  },
-  data: () => ({
-    dialog: false,
-  }),
-  methods: {
-    show() {
-      this.dialog = true
-    },
-  },
 })
+export default class CCSearchResultModal extends Vue {
+
+  @Prop({ type: Object, required: true, })
+  item: CompendiumItem
+  
+  dialog = false
+  show() {
+    this.dialog = true
+  }
+}
 </script>
